@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Random Quote Machine</title>
+
+<style>
+  body{
+    background-color: green;
+    color: white;
+    font-size: 1.2em;
+    text-align: center;
+  }
+
+  .quote-display{
+    background-color: gray;
+    border: 2px solid black;
+    margin: 1em auto;
+    position: relative;
+    padding: 1em;
+    width: 400px;
+    height: 100px;
+  }
+  .quote{
+    text-align: center;
+  }
+  .name{
+    position: absolute;
+    bottom: .5em;
+    right: .5em;
+  }
+</style>
+<script>
+  $(document).ready(function(){
+    $('#btnQuote').click(function() {
+      $.ajax({
+        url: "http://api.forismatic.com/api/1.0/",
+        jsonp: "jsonp",
+        dataType: "jsonp",
+        data: {
+          method: "getQuote",
+          lang: "en",
+          format: "jsonp"
+        }
+      })
+      .done(update)
+      .fail(handleErr);
+    });
+    
+    //SetQuote('jQuery Quote!','jQuery Name!');
+    $('#btnQuote').click();
+  });
+
+  function update(response) {
+    var text = response.quoteText;
+    var author = response.quoteAuthor;
+    
+    SetQuote(text, author);
+  }
+
+  function handleErr(jqxhr, textStatus, err) {
+    console.log("Request Failed: " + textStatus + ", " + err);
+  }
+
+  function SetQuote(quote, name) {
+    $('.quote').text(quote);
+    $('.name').text(name);
+    
+    var link = "https://twitter.com/intent/tweet?text='" + quote + "' -" + name;
+    $('#aTweet').attr('href', link);
+  }
+</script>
+
+</head>
+<body>
+
+  <h1>Random Quote Machine</h1>
+  <a href="http://codepen.io/wmantegna/pen/ALmkar?editors=1011">Random Quote Machine</a>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-xs-12 col-md-4 col-md-offset-4">
+        
+        <div class="quote-display">
+          <div class="quote">Quote</div>
+          <div class="name">Name</div>
+        </div>
+        
+        <button id="btnQuote" class="btn btn-primary">Click for a new Quote</button>
+        <a id="aTweet" target="_blank" class="btn btn-info">Tweet!</a>
+        
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
