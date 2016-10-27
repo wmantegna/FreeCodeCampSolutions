@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title>
+
+<style>
+
+  body{
+    background-color: green;
+  }
+
+  .weather-container{
+    background-color: white;
+    border-radius: 5%;
+    margin-top: 1em;
+    margin-bottom: 1em;
+  }
+
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+  $(document).ready(function(){
+    getLocation();
+    
+    $('#btnTemp').click(function(){
+      var text = $('#btnTemp').html();
+      
+      var imperial = "Fahrenheit";
+      var metric = "Celcius";
+      
+      // update weather
+      var lon = $("#lon").html();
+      var lat = $("#lat").html();
+      var useMetric = text === imperial;
+      getWeather(lat, lon, useMetric);
+      
+      // toggle button text
+      text = useMetric ? metric : imperial;
+      
+      $('#btnTemp').html(text);
+    });
+  });
+
+  function getLocation(){
+    
+    $.get("http://ipinfo.io", function(response) {
+      $("#ip").html(response.ip);
+      $("#address").html(response.city + ", " + response.region + ", " + response.country);
+      console.log('hello');
+      console.log(response);
+      var arr = response.loc.split(',');
+      var latitude = arr[0];
+      var longitude = arr[1];
+      
+      $("#lon").html(longitude);
+      $("#lat").html(latitude);
+      getWeather(latitude, longitude, false);
+    }, "jsonp");
+  }
+
+  function getWeather(lat, lon, useMetric){
+    var key = "f1fd530ec6914dbec8f313d823dff62a";
+    var unit = useMetric ? "metric" : "imperial";
+    var intro = location.protocol;
+    var link = intro + "//api.openweathermap.org/data/2.5/weather?APPID=" + key;
+    link += "&lat=" + lat + "&lon=" + lon + "&units=" + unit;
+    
+    $.get(link, function(response) {
+      
+      var mainData = response.main;
+      $('#weatherTemp').html(mainData.temp);
+      $('#weatherHumidity').html(mainData.humidity);
+      $('#weatherPressure').html(mainData.pressure);
+      
+      var weather = response.weather[0];
+      $('#weatherMain').html(weather.main);
+      $('#weatherDesc').html(weather.description);
+      
+      var imgLink = "http://openweathermap.org/img/w/" + weather.icon + ".png";
+      $('#imgWeather').attr('src',imgLink);
+
+    });
+  }
+</script>
+
+</head>
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-4 col-md-offset-4 weather-container">
+        <h1>
+          Local Weather
+          <img id="imgWeather" class="pull-right" style="height:75px;width:75px;">
+        </h1>
+        <p>
+          <b><span id="weatherMain"></span></b>, 
+          <span id="weatherDesc"></span>
+        </p>
+        <p>
+          <button id="btnTemp" class="btn btn-primary btn-sm pull-right" style="width: 100px">Fahrenheit</button>
+          
+          <b>Temperature:</b> <span id="weatherTemp"></span>°<br>
+          <b>Humidity:</b> <span id="weatherHumidity"></span>%<br>
+          <b>Pressure:</b> <span id="weatherPressure"></span>
+        </p>
+        
+        <p>
+          <b><span id="address"></span></b><br>
+          <small>
+            <b>Latitude:</b> <span id="lat"></span>°<br>
+            <b>Longitude:</b> <span id="lon"></span>°
+            <b>IP Address:</b> <span id="ip"></span><br>
+          </small>
+        </p>
+        <p class="text-right"><small>*only works on http (NOT https)</small></p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
