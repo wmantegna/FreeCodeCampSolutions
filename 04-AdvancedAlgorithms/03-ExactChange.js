@@ -14,6 +14,10 @@ Otherwise, return change in coin and bills, sorted in highest to lowest order.
 
 */
 
+function round2(num){
+  return Math.round(num * 100) / 100;
+}
+
 
 // translate cid to an object
 function CashInDrawertoObject(cid){
@@ -29,9 +33,9 @@ function CashInDrawertoObject(cid){
   }
   
   // round total to avoid awkward JS precision
-  obj.total = Math.round(obj.total * 100) / 100;
+  obj.total = round2(obj.total);
   
-  obj. = function(){};
+  //obj. = function(){};
   
   return obj;
 }
@@ -53,39 +57,51 @@ function getMultiplier(key){
 }
 
 // make change from a given drawer
-function makeChange(change, drawer){
+function makeChange(change, drawer){  
   var denominations = ["one hundred","twenty","ten","five","one","quarter","dime","nickel","penny"];
   var returns = [];
-  
+
   for (var i = 0; i < denominations.length; i++){
     var key = denominations[i];
     var val = drawer[key];
     var multiplier = getMultiplier(key);
     
-    if (change > val){
-      var quotient = val / multiplier;
-      val = quotient * multiplier;
-    } else if (change < val) {
-      var quotient = val / multiplier;
-      val = quotient * multiplier;
+    var valToGiveBack = determineChange(change, val, multiplier);
+    if (valToGiveBack > 0){
+//       console.log('val=' + val + ' | mult='+multiplier + ' | change=' + change);
+      returns.push([key.toUpperCase(), valToGiveBack]);
+      change = round2((change - valToGiveBack));
+//       console.log('valToGiveBack='+valToGiveBack + ' |change(new)='+change);
     }
     
-    returns.push([key.toUpperCase(), val]);
-    change -= val;
-
     if (change === 0){
-      return returns;
+      break;
     }
+  }
+  
+  if (change === 0){
+    return returns;
+  } else {
+    return "Insufficient Funds";
   }
 }
 
-function determineChange(change, amount, multiplier){
-  if (amount <= change){
-    return amount;
-  } else {
-    var quotient = amount / multiplier;
-    amount = quotient * multiplier;
+function determineChange(change, amountInDrawer, multiplier){
+  var retval = 0;
+  
+  if (change < multiplier){
+    return retval;
   }
+  if (change > amountInDrawer){
+    return amountInDrawer;
+  }
+  
+  // get integer number of a denomination to return
+  var quotient = change / multiplier;
+  quotient = Math.floor(quotient);
+  retval = quotient * multiplier;
+//   console.log('change=' + change + ' |inDrawer='+ amountInDrawer+ ' |mult=' + multiplier + ' |quot='+quotient + ' |retval='+retval);
+  return retval;
 }
 
 function checkCashRegister(price, cash, cid) {
@@ -101,12 +117,8 @@ function checkCashRegister(price, cash, cid) {
     return "Closed";
   }
   
-  // make change
-  
-
-
-  // Here is your change, ma'am.
-  return change;
+  var changeToReturn = makeChange(change, drawer);
+  return changeToReturn;
 }
 
 // Example cash-in-drawer array:
@@ -122,18 +134,52 @@ function checkCashRegister(price, cash, cid) {
 
 
  // [["QUARTER", 0.50]]
- var price = 19.50;
- var cash = 20.00;
- var cid = [["PENNY", 1.01], 
-            ["NICKEL", 2.05], 
-            ["DIME", 3.10], 
-            ["QUARTER", 4.25], 
-            ["ONE", 90.00], 
-            ["FIVE", 55.00], 
-            ["TEN", 20.00], 
-            ["TWENTY", 60.00], 
-            ["ONE HUNDRED", 100.00]];
+//  var price = 19.50;
+//  var cash = 20.00;
+//  var cid = [["PENNY", 1.01], 
+//             ["NICKEL", 2.05], 
+//             ["DIME", 3.10], 
+//             ["QUARTER", 4.25], 
+//             ["ONE", 90.00], 
+//             ["FIVE", 55.00], 
+//             ["TEN", 20.00], 
+//             ["TWENTY", 60.00], 
+//             ["ONE HUNDRED", 100.00]];
+
+// [["TWENTY", 60.00], ["TEN", 20.00], ["FIVE", 15.00], ["ONE", 1.00], ["QUARTER", 0.50], ["DIME", 0.20], ["PENNY", 0.04]]
+// var price = 3.26;
+// var cash = 100.00;
+// var cid = [["PENNY", 1.01], 
+//            ["NICKEL", 2.05], 
+//            ["DIME", 3.10], 
+//            ["QUARTER", 4.25], 
+//            ["ONE", 90.00], 
+//            ["FIVE", 55.00], 
+//            ["TEN", 20.00], 
+//            ["TWENTY", 60.00], 
+//            ["ONE HUNDRED", 100.00]];
+
+// "Insufficient Funds"
+var price = 19.50;
+var cash = 20.00;
+var cid =[["PENNY", 0.01], 
+          ["NICKEL", 0], 
+          ["DIME", 0], 
+          ["QUARTER", 0], 
+          ["ONE", 1.00], 
+          ["FIVE", 0], 
+          ["TEN", 0], 
+          ["TWENTY", 0], 
+          ["ONE HUNDRED", 0]];
+
+
+// function CashInDrawertoObject(cid){
+// var ans = CashInDrawertoObject(cid);
+
+// function determineChange(change, amountInDrawer, multiplier){
+// var ans = determineChange(0.27, 0.50, 0.25);
+// var ans = determineChange(0.25, 0.25, 0.25);
+// var ans = determineChange(0.24, 0.25, 0.25);
 
 var ans = checkCashRegister(price, cash, cid);
-// var ans = CashInDrawertoObject(cid);
 console.log(ans);
